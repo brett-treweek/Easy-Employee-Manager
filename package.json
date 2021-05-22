@@ -1,0 +1,23 @@
+{
+  "name": "easy-employee-manager",
+  "version": "1.0.0",
+  "description": "initial commit",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brett-treweek/Easy-Employee-Manager.git"
+  },
+  "author": "Brett Treweek",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brett-treweek/Easy-Employee-Manager/issues"
+  },
+  "homepage": "https://github.com/brett-treweek/Easy-Employee-Manager#readme",
+  "dependencies": {
+    "inquirer": "^8.1.0",
+    "mysql2": "^2.2.5"
+  }
+}
