@@ -52,7 +52,7 @@ function menu() {
 
 // ==================================================================
 // ===================== View Tables Function =======================
-function view(){
+function view() {
   inquirer
     .prompt([
       {
@@ -73,22 +73,22 @@ function view(){
       console.table(result);
       menu();
     });
-};
+}
 
 // =============================================================
 // ===================== Add Question ==========================
-function add(){
+function add() {
   inquirer
     .prompt([
       {
         type: "list",
         name: "addStuff",
-        message: "What would you like to add to?",
+        message: "What would you like to add?",
         choices: ["Department", "Employees", "Roles"],
       },
     ])
     .then((answer) => {
-      switch(answer.addStuff) {
+      switch (answer.addStuff) {
         case "Department":
           addDepartment();
           break;
@@ -100,7 +100,7 @@ function add(){
           break;
       }
     });
-};
+}
 // ================= Add Department Question =================
 
 function addDepartment() {
@@ -132,6 +132,123 @@ function addDepartment() {
 }
 
 // =================== Add Employee Question ====================
+
+// Return list of managers for manager question, set them to variable, set variable as choices in question.
+
+async function addEmployees() {
+  const managers = await query(
+    `SELECT first_name, last_name, id FROM Employees WHERE role_id='1'`
+  );
+  
+  console.log(managers)
+  const managerArray = [];
+
+  managers.forEach((element) => {
+    managerArray.push(`${element.first_name} ${element.last_name}`);
+  });
+
+  console.log(managerArray);
+
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "FirstName",
+        message: "What is the Employees First Name?",
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+      {
+        type: "input",
+        name: "Surname",
+        message: "What is the Employees Surname?",
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+      {
+        type: "list",
+        name: "roleId",
+        message: "What is the Employees Role?",
+        choices: [
+          "Manager",
+          "Lead Engineer",
+          "Junior Engineer",
+          "Administration",
+        ],
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+      {
+        type: "list",
+        name: "managerId",
+        message: "Who is the new employees Manager?",
+        choices: managerArray,
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+    ])
+    .then((answer) => {
+      
+      if (answer.roleId === 'Manager') {
+        role = 1
+      } else if (answer.roleId === 'Lead Engineer') {
+        role = 2
+      } else if (answer.roleId === 'Junior Engineer') {
+        role = 3
+      } else role = 4;
+
+      console.log(answer, role);
+      console.log(answer.managerId)
+      employeeAnswers(answer, role);
+    });
+}
+
+async function employeeAnswers(answer, role) {
+  console.log(role);
+  
+  let mngrArray = []
+  const mngr = answer.managerId.split(' ')
+  mngrArray.push(mngr)
+  mngrArray = mngrArray.shift()
+  console.log('mngrArray: ',mngrArray)
+  const managersFirstName = mngrArray.shift()
+  const managersLastName = mngrArray.shift()
+  console.log("managersFirstName: ",managersFirstName)
+  console.log("managersLastName: ",managersLastName)
+  const managersPK = await query(
+    `SELECT id FROM Employees WHERE first_name='${managersFirstName}' AND last_name='${managersLastName}'`
+  );
+  console.log(managersPK)
+  const managersPKID = managersPK[0].id
+
+
+  await query(
+    `INSERT INTO Employees\(first_name, last_name, role_id, manager_id\) VALUES \('${answer.FirstName}','${answer.Surname}','${role}', '${managersPKID}'\)`
+  );
+  const res = await query(`SELECT * FROM Employees`);
+  console.log(
+    `\n====== Created new Employee ${answer.FirstName} ${answer.Surname} ======\n`
+  );
+  console.table(res);
+  menu();
+}
+
 // =================== Add Role Question ========================
 
 // ========================================================

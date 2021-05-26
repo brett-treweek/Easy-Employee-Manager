@@ -38,9 +38,9 @@ VALUES ('sales');
 INSERT INTO Department (department_name)
 VALUES ('marketing');
 INSERT INTO Employees (first_name, last_name, role_id, manager_id)
-VALUES ('Brett', 'Treweek', 123, 345);
+VALUES ('Brett', 'Treweek', 2, 345);
 INSERT INTO Employees (first_name, last_name, role_id, manager_id)
-VALUES ('Meryl', 'Faitg', 123, 345);
+VALUES ('Marion', 'Faitg', 1, 345);
 INSERT INTO Roles (title, salary, department_id)
 VALUES ('Bossy Boots', '50500', 1);
 INSERT INTO Roles (title, salary, department_id)
