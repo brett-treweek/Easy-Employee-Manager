@@ -74,7 +74,7 @@ VALUES (6, 'Chef', '65000', 2);
 INSERT INTO Roles (id, title, salary, department_id)
 VALUES (7, 'Waitress', '40000', 2);
 INSERT INTO Roles (id, title, salary, department_id)
-VALUES (3, 'Director of Sales', '15000', 3);
+VALUES (3, 'Director of Sales', '150000', 3);
 INSERT INTO Roles (id, title, salary, department_id)
 VALUES (8, 'Events Co-ordinator', '75000', 3);
 INSERT INTO Roles (id, title, salary, department_id)

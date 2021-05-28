@@ -52,6 +52,58 @@ function menu() {
 
 // ==================================================================
 // ===================== View Tables Function =======================
+function byManagerFunction(managerArray){
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "manager",
+        message: "Which managers minions would you like to view?",
+        choices: managerArray,
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+    ]).then(async (answer) => {
+      switch (answer.manager) {
+        
+        case managerArray[0]:
+          const res = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
+          from Employees
+          inner join Roles on employees.role_id=roles.id
+          where manager_id=1;`)
+          console.log(answer.manager)
+          console.table(res)
+          menu()
+          break;
+        case managerArray[1]:
+          const ans = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
+          from Employees
+          inner join Roles on employees.role_id=roles.id
+          where manager_id=2;`)
+          console.table(ans)
+          menu()
+          break;
+        case managerArray[2]:
+          const blah = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
+          from Employees
+          inner join Roles on employees.role_id=roles.id
+          where manager_id=3;`)
+          console.table(blah)
+          menu()
+          break;
+        default:
+          break;
+      }
+    })}
+
+
+
+
+
 function view() {
   inquirer
     .prompt([
@@ -60,8 +112,8 @@ function view() {
         name: "viewStuff",
         message: "What would you like to view?",
         choices: [
-          "Department",
           "Employees",
+          "Department",
           "Roles",
           "Employees by Manager",
           "Total Budget of Departments",
@@ -69,9 +121,32 @@ function view() {
       },
     ])
     .then(async (answer) => {
-      const result = await query(`SELECT * FROM ${answer.viewStuff}`);
-      console.table(result);
-      menu();
+      switch (answer.viewStuff) {
+        case "Employees":
+          const result =
+            await query(`SELECT Employees.id as ID, Employees.first_name as 'First Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary, Department.department_name as Department, Employees.manager_id as 'Manager ID'
+        FROM ((Roles 
+        INNER JOIN Employees ON Roles.id=Employees.role_id) 
+        INNER JOIN Department ON Roles.department_id=Department.id)`);
+          console.table(result);
+          menu();
+          break;
+        case "Employees by Manager":
+          const managers = await query(
+            `SELECT first_name, last_name, id FROM Employees WHERE role_id='1' OR role_id='2' OR role_id='3'`
+          );
+          const managerArray = [];
+          managers.forEach((element) => {
+            managerArray.push(`${element.first_name} ${element.last_name}`);
+          });
+          byManagerFunction(managerArray);
+          break;
+        default:
+          const res = await query(`SELECT * FROM ${answer.viewStuff}`);
+          console.table(res);
+          menu();
+          break;
+      }
     });
 }
 
@@ -136,22 +211,18 @@ function addDepartment() {
 // Return list of managers for manager question, set them to variable, set variable as choices in question.
 
 async function addEmployees() {
-
   // Creating array of managers ===============
   const managers = await query(
-    `SELECT first_name, last_name, id FROM Employees WHERE role_id='1'`
+    `SELECT first_name, last_name, id FROM Employees WHERE role_id='1' OR role_id='2' OR role_id='3'`
   );
-  
-  // console.log(managers)
+
   const managerArray = [];
 
   managers.forEach((element) => {
     managerArray.push(`${element.first_name} ${element.last_name}`);
   });
-  managerArray.push('n/a')
-
-  // console.log(managerArray);
-
+  managerArray.push("n/a");
+  console.table(managerArray);
   inquirer
     .prompt([
       {
@@ -189,7 +260,7 @@ async function addEmployees() {
           "Waitress",
           "Director of Sales and Marketing",
           "Events Co-ordinator",
-          "Sales Co-ordinator"
+          "Sales Co-ordinator",
         ],
         validate: (answer) => {
           if (answer === "") {
@@ -212,26 +283,25 @@ async function addEmployees() {
       },
     ])
     .then((answer) => {
-      
-      if (answer.roleId === 'Director of Rooms') {
-        role = 1
-      } else if (answer.roleId === 'Director of Food and Beverages') {
-        role = 2
-      } else if (answer.roleId === 'Director of Sales and Marketing') {
-        role = 3
-      } else if (answer.roleId === 'Front Office Manager') {
-        role = 4
-      } else if (answer.roleId === 'Receptionist') {
-        role = 5
-      } else if (answer.roleId === 'Chef') {
-        role = 6
-      } else if (answer.roleId === 'Waitress') {
-        role = 7
-      } else if (answer.roleId === 'Events Co-ordinator') {
-        role = 8
-      } else if (answer.roleId === 'Sales Co-ordinator') {
-        role = 9
-      } ;
+      if (answer.roleId === "Director of Rooms") {
+        role = 1;
+      } else if (answer.roleId === "Director of Food and Beverages") {
+        role = 2;
+      } else if (answer.roleId === "Director of Sales and Marketing") {
+        role = 3;
+      } else if (answer.roleId === "Front Office Manager") {
+        role = 4;
+      } else if (answer.roleId === "Receptionist") {
+        role = 5;
+      } else if (answer.roleId === "Chef") {
+        role = 6;
+      } else if (answer.roleId === "Waitress") {
+        role = 7;
+      } else if (answer.roleId === "Events Co-ordinator") {
+        role = 8;
+      } else if (answer.roleId === "Sales Co-ordinator") {
+        role = 9;
+      }
 
       // console.log(answer, role);
       // console.log(answer.managerId)
@@ -241,22 +311,21 @@ async function addEmployees() {
 
 async function employeeAnswers(answer, role) {
   // console.log(role);
-  
-  let mngrArray = []
-  const mngr = answer.managerId.split(' ')
-  mngrArray.push(mngr)
-  mngrArray = mngrArray.shift()
+
+  let mngrArray = [];
+  const mngr = answer.managerId.split(" ");
+  mngrArray.push(mngr);
+  mngrArray = mngrArray.shift();
   // console.log('mngrArray: ',mngrArray)
-  const managersFirstName = mngrArray.shift()
-  const managersLastName = mngrArray.shift()
+  const managersFirstName = mngrArray.shift();
+  const managersLastName = mngrArray.shift();
   // console.log("managersFirstName: ",managersFirstName)
   // console.log("managersLastName: ",managersLastName)
   const managersPK = await query(
     `SELECT id FROM Employees WHERE first_name='${managersFirstName}' AND last_name='${managersLastName}'`
   );
   // console.log(managersPK)
-  const managersPKID = managersPK[0].id
-
+  const managersPKID = managersPK[0].id;
 
   await query(
     `INSERT INTO Employees\(first_name, last_name, role_id, manager_id\) VALUES \('${answer.FirstName}','${answer.Surname}','${role}', '${managersPKID}'\)`
