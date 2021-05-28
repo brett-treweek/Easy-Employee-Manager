@@ -136,18 +136,21 @@ function addDepartment() {
 // Return list of managers for manager question, set them to variable, set variable as choices in question.
 
 async function addEmployees() {
+
+  // Creating array of managers ===============
   const managers = await query(
     `SELECT first_name, last_name, id FROM Employees WHERE role_id='1'`
   );
   
-  console.log(managers)
+  // console.log(managers)
   const managerArray = [];
 
   managers.forEach((element) => {
     managerArray.push(`${element.first_name} ${element.last_name}`);
   });
+  managerArray.push('n/a')
 
-  console.log(managerArray);
+  // console.log(managerArray);
 
   inquirer
     .prompt([
@@ -178,10 +181,15 @@ async function addEmployees() {
         name: "roleId",
         message: "What is the Employees Role?",
         choices: [
-          "Manager",
-          "Lead Engineer",
-          "Junior Engineer",
-          "Administration",
+          "Director of Rooms",
+          "Front Office Manager",
+          "Receptionist",
+          "Director of Food and Beverages",
+          "Chef",
+          "Waitress",
+          "Director of Sales and Marketing",
+          "Events Co-ordinator",
+          "Sales Co-ordinator"
         ],
         validate: (answer) => {
           if (answer === "") {
@@ -205,36 +213,48 @@ async function addEmployees() {
     ])
     .then((answer) => {
       
-      if (answer.roleId === 'Manager') {
+      if (answer.roleId === 'Director of Rooms') {
         role = 1
-      } else if (answer.roleId === 'Lead Engineer') {
+      } else if (answer.roleId === 'Director of Food and Beverages') {
         role = 2
-      } else if (answer.roleId === 'Junior Engineer') {
+      } else if (answer.roleId === 'Director of Sales and Marketing') {
         role = 3
-      } else role = 4;
+      } else if (answer.roleId === 'Front Office Manager') {
+        role = 4
+      } else if (answer.roleId === 'Receptionist') {
+        role = 5
+      } else if (answer.roleId === 'Chef') {
+        role = 6
+      } else if (answer.roleId === 'Waitress') {
+        role = 7
+      } else if (answer.roleId === 'Events Co-ordinator') {
+        role = 8
+      } else if (answer.roleId === 'Sales Co-ordinator') {
+        role = 9
+      } ;
 
-      console.log(answer, role);
-      console.log(answer.managerId)
+      // console.log(answer, role);
+      // console.log(answer.managerId)
       employeeAnswers(answer, role);
     });
 }
 
 async function employeeAnswers(answer, role) {
-  console.log(role);
+  // console.log(role);
   
   let mngrArray = []
   const mngr = answer.managerId.split(' ')
   mngrArray.push(mngr)
   mngrArray = mngrArray.shift()
-  console.log('mngrArray: ',mngrArray)
+  // console.log('mngrArray: ',mngrArray)
   const managersFirstName = mngrArray.shift()
   const managersLastName = mngrArray.shift()
-  console.log("managersFirstName: ",managersFirstName)
-  console.log("managersLastName: ",managersLastName)
+  // console.log("managersFirstName: ",managersFirstName)
+  // console.log("managersLastName: ",managersLastName)
   const managersPK = await query(
     `SELECT id FROM Employees WHERE first_name='${managersFirstName}' AND last_name='${managersLastName}'`
   );
-  console.log(managersPK)
+  // console.log(managersPK)
   const managersPKID = managersPK[0].id
 
 
