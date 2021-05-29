@@ -99,9 +99,9 @@ async function totalBudgetFunction() {
     const sum = deptBudget
       .map((item) => parseInt(item.value))
       .reduce((prev, curr) => prev + curr, 0);
-
-    console.log(deptBudget[0].name, sum);
+    console.log("\n", deptBudget[0].name, sum, "\n");
   });
+  setTimeout(menu, 1000);
 }
 
 function view() {
@@ -381,15 +381,126 @@ const update = async () => {
     },
   ]);
   switch (answer.updateStuff) {
-    case "Department":
-      updateEmployeeRoles();
+    case "Employee Managers":
+      whichEmployee();
       break;
-    case "Employee":
-      updateEmployeeManagers();
+    case "Employee Roles":
+      whichRole();
       break;
   }
 };
-// ================== Update Employee Roles =====================
+// ================== Update Employee Roles =========================
+
+async function whichRole() {
+  const roles = await query(`select title, id from roles`);
+
+  const rolesArray = roles.map((role) => {
+    return {
+      name: role.title,
+      value: role.id,
+    };
+  });
+
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "whichRole",
+        message: "Which role would you like to update?",
+        choices: rolesArray,
+      },
+    ])
+    .then((answer) => {
+      // console.log(answer.whichRole);
+      updateWhat(answer);
+    });
+}
+
+async function updateWhat(answer) {
+  const dep = await query("select * from department");
+  const depArray = dep.map((d) => {
+    return {
+      name: d.department_name,
+      value: d.id,
+    };
+  });
+  
+  const roleId = answer.whichRole;
+  console.log("roleId:", roleId);
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "whichParameter",
+        message: "What would you like to update?",
+        choices: ["Title", "Salary", "Department ID", "Exit"],
+      },
+    ])
+    .then((result) => {
+      console.log("role id:", roleId);
+      switch (result.whichParameter) {
+        case "Title":
+          inquirer
+            .prompt([
+              {
+                type: "input",
+                name: "newTitle",
+                message: "Please enter a new Title",
+              },
+            ])
+            .then(async (title) => {
+              console.log(title.newTitle, roleId);
+              await query(
+                `update roles set title = '${title.newTitle}' where id = ${roleId}`
+              );
+              menu();
+            });
+          break;
+
+        case "Salary":
+          inquirer
+            .prompt([
+              {
+                type: "input",
+                name: "newSalary",
+                message: "Please enter a new Salary",
+              },
+            ])
+            .then(async (salary) => {
+              console.log(salary.newSalary, roleId);
+              await query(
+                `update roles set salary = ${salary.newSalary} where id = ${roleId}`
+              );
+              menu();
+            });
+          break;
+
+        case "Department ID":
+          inquirer
+            .prompt([
+              {
+                type: "list",
+                name: "newDeptId",
+                message: "Please choose a new Department",
+                choices: depArray,
+              },
+            ])
+            .then(async (newDep) => {
+              console.log('depArray: ',depArray);
+              console.log(newDep, roleId);
+              await query(
+                `update roles set department_id = ${newDep.newDeptId} where id = ${roleId}`
+              );
+              menu();
+            });
+          break;
+
+        default:
+          break;
+      }
+    });
+}
+
 // ================== Update Employee Managers ======================
 
 // ==========================================================
