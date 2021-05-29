@@ -52,7 +52,7 @@ function menu() {
 
 // ==================================================================
 // ===================== View Tables Function =======================
-function byManagerFunction(managerArray){
+function byManagerFunction(managerArray) {
   inquirer
     .prompt([
       {
@@ -67,42 +67,42 @@ function byManagerFunction(managerArray){
           return true;
         },
       },
-    ]).then(async (answer) => {
-      switch (answer.manager) {
-        
-        case managerArray[0]:
-          const res = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
-          from Employees
-          inner join Roles on employees.role_id=roles.id
-          where manager_id=1;`)
-          console.log(answer.manager)
-          console.table(res)
-          menu()
-          break;
-        case managerArray[1]:
-          const ans = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
-          from Employees
-          inner join Roles on employees.role_id=roles.id
-          where manager_id=2;`)
-          console.table(ans)
-          menu()
-          break;
-        case managerArray[2]:
-          const blah = await query(`select Employees.first_name as 'Name', Employees.last_name as Surname, Roles.title as Position, Roles.salary as Salary 
-          from Employees
-          inner join Roles on employees.role_id=roles.id
-          where manager_id=3;`)
-          console.table(blah)
-          menu()
-          break;
-        default:
-          break;
-      }
-    })}
+    ])
+    .then(async (answer) => {
+      const result = await query(
+        `select employees.first_name as 'Name', employees.last_name as Surname, roles.title as Position, roles.salary as Salary from employees inner join roles on employees.role_id=roles.id where manager_id=${answer.manager}`
+      );
+      console.table(result);
+      menu();
+    });
+}
 
+async function totalBudgetFunction() {
+  const allDepts = await query(`select *
+  from department`);
 
+  allDepts.forEach(async (element) => {
+    let id = element.id;
 
+    const dept = await query(`select * 
+  from ((roles
+  inner join employees on roles.id=employees.role_id)
+  inner join department on department.id=roles.department_id)
+  where department_id=${id};`);
 
+    const deptBudget = dept.map((dep) => {
+      return {
+        name: dep.department_name,
+        value: dep.salary,
+      };
+    });
+    const sum = deptBudget
+      .map((item) => parseInt(item.value))
+      .reduce((prev, curr) => prev + curr, 0);
+
+    console.log(deptBudget[0].name, sum);
+  });
+}
 
 function view() {
   inquirer
@@ -117,6 +117,7 @@ function view() {
           "Roles",
           "Employees by Manager",
           "Total Budget of Departments",
+          "Back",
         ],
       },
     ])
@@ -131,16 +132,28 @@ function view() {
           console.table(result);
           menu();
           break;
+
         case "Employees by Manager":
           const managers = await query(
             `SELECT first_name, last_name, id FROM Employees WHERE role_id='1' OR role_id='2' OR role_id='3'`
           );
-          const managerArray = [];
-          managers.forEach((element) => {
-            managerArray.push(`${element.first_name} ${element.last_name}`);
+          const managerArray = managers.map((manager) => {
+            return {
+              name: manager.first_name + " " + manager.last_name,
+              value: manager.id,
+            };
           });
           byManagerFunction(managerArray);
           break;
+
+        case "Back":
+          menu();
+          break;
+
+        case "Total Budget of Departments":
+          totalBudgetFunction();
+          break;
+
         default:
           const res = await query(`SELECT * FROM ${answer.viewStuff}`);
           console.table(res);
@@ -159,7 +172,7 @@ function add() {
         type: "list",
         name: "addStuff",
         message: "What would you like to add?",
-        choices: ["Department", "Employees", "Roles"],
+        choices: ["Department", "Employees", "Roles", "Back"],
       },
     ])
     .then((answer) => {
@@ -172,6 +185,9 @@ function add() {
           break;
         case "Roles":
           addRoles();
+          break;
+        case "Back":
+          menu();
           break;
       }
     });
@@ -208,21 +224,27 @@ function addDepartment() {
 
 // =================== Add Employee Question ====================
 
-// Return list of managers for manager question, set them to variable, set variable as choices in question.
-
 async function addEmployees() {
   // Creating array of managers ===============
   const managers = await query(
     `SELECT first_name, last_name, id FROM Employees WHERE role_id='1' OR role_id='2' OR role_id='3'`
   );
 
-  const managerArray = [];
-
-  managers.forEach((element) => {
-    managerArray.push(`${element.first_name} ${element.last_name}`);
+  const managerArray = managers.map((manager) => {
+    return {
+      name: manager.first_name + " " + manager.last_name,
+      value: manager.id,
+    };
   });
-  managerArray.push("n/a");
-  console.table(managerArray);
+
+  const roles = await query("select * from roles");
+  const rolesArray = roles.map((role) => {
+    return {
+      name: role.title,
+      value: role.id,
+    };
+  });
+
   inquirer
     .prompt([
       {
@@ -251,17 +273,7 @@ async function addEmployees() {
         type: "list",
         name: "roleId",
         message: "What is the Employees Role?",
-        choices: [
-          "Director of Rooms",
-          "Front Office Manager",
-          "Receptionist",
-          "Director of Food and Beverages",
-          "Chef",
-          "Waitress",
-          "Director of Sales and Marketing",
-          "Events Co-ordinator",
-          "Sales Co-ordinator",
-        ],
+        choices: rolesArray,
         validate: (answer) => {
           if (answer === "") {
             return "Please enter a valid name";
@@ -283,52 +295,13 @@ async function addEmployees() {
       },
     ])
     .then((answer) => {
-      if (answer.roleId === "Director of Rooms") {
-        role = 1;
-      } else if (answer.roleId === "Director of Food and Beverages") {
-        role = 2;
-      } else if (answer.roleId === "Director of Sales and Marketing") {
-        role = 3;
-      } else if (answer.roleId === "Front Office Manager") {
-        role = 4;
-      } else if (answer.roleId === "Receptionist") {
-        role = 5;
-      } else if (answer.roleId === "Chef") {
-        role = 6;
-      } else if (answer.roleId === "Waitress") {
-        role = 7;
-      } else if (answer.roleId === "Events Co-ordinator") {
-        role = 8;
-      } else if (answer.roleId === "Sales Co-ordinator") {
-        role = 9;
-      }
-
-      // console.log(answer, role);
-      // console.log(answer.managerId)
-      employeeAnswers(answer, role);
+      employeeAnswers(answer);
     });
 }
 
-async function employeeAnswers(answer, role) {
-  // console.log(role);
-
-  let mngrArray = [];
-  const mngr = answer.managerId.split(" ");
-  mngrArray.push(mngr);
-  mngrArray = mngrArray.shift();
-  // console.log('mngrArray: ',mngrArray)
-  const managersFirstName = mngrArray.shift();
-  const managersLastName = mngrArray.shift();
-  // console.log("managersFirstName: ",managersFirstName)
-  // console.log("managersLastName: ",managersLastName)
-  const managersPK = await query(
-    `SELECT id FROM Employees WHERE first_name='${managersFirstName}' AND last_name='${managersLastName}'`
-  );
-  // console.log(managersPK)
-  const managersPKID = managersPK[0].id;
-
+async function employeeAnswers(answer) {
   await query(
-    `INSERT INTO Employees\(first_name, last_name, role_id, manager_id\) VALUES \('${answer.FirstName}','${answer.Surname}','${role}', '${managersPKID}'\)`
+    `INSERT INTO Employees\(first_name, last_name, role_id, manager_id\) VALUES \('${answer.FirstName}','${answer.Surname}','${answer.roleId}', '${answer.managerId}'\)`
   );
   const res = await query(`SELECT * FROM Employees`);
   console.log(
@@ -339,6 +312,62 @@ async function employeeAnswers(answer, role) {
 }
 
 // =================== Add Role Question ========================
+async function addRoles() {
+  const deptArray = await query("select * from department");
+  const deptList = deptArray.map((dept) => {
+    return {
+      name: dept.department_name,
+      value: dept.id,
+    };
+  });
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "title",
+        message: "What is the new Role Name?",
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "What is the new Role's base salary?",
+        validate: (answer) => {
+          if (answer === NaN) {
+            return "Please enter a valid number";
+          }
+          return true;
+        },
+      },
+      {
+        type: "list",
+        name: "departmentId",
+        message: "What is the new Role's Department id?",
+        choices: deptList,
+        validate: (answer) => {
+          if (answer === "") {
+            return "Please enter a valid name";
+          }
+          return true;
+        },
+      },
+    ])
+    .then(async (answer) => {
+      console.log(answer);
+      await query(
+        `INSERT INTO Roles\(title, salary, department_id\) VALUES \('${answer.title}', ${answer.salary}, ${answer.departmentId}\)`
+      );
+      const res = await query(`SELECT * FROM Roles`);
+      console.log(`\n====== Created new Role ${answer.title} ======\n`);
+      console.table(res);
+      menu();
+    });
+}
 
 // ========================================================
 // ================= Update Question ======================
@@ -351,7 +380,7 @@ const update = async () => {
       choices: ["Employee Roles", "Employee Managers"],
     },
   ]);
-  switch (answer.addStuff) {
+  switch (answer.updateStuff) {
     case "Department":
       updateEmployeeRoles();
       break;
