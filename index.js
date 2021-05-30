@@ -26,7 +26,7 @@ function menu() {
       {
         type: "list",
         name: "menuList",
-        message: "What would you like to do?",
+        message: "\nWhat would you like to do?",
         choices: ["View", "Add", "Update", "Delete", "Quit"],
       },
     ])
@@ -58,7 +58,7 @@ function byManagerFunction(managerArray) {
       {
         type: "list",
         name: "manager",
-        message: "Which managers minions would you like to view?",
+        message: "\nWhich managers minions would you like to view?",
         choices: managerArray,
         validate: (answer) => {
           if (answer === "") {
@@ -110,7 +110,7 @@ function view() {
       {
         type: "list",
         name: "viewStuff",
-        message: "What would you like to view?",
+        message: "\nWhat would you like to view?",
         choices: [
           "Employees",
           "Department",
@@ -200,7 +200,7 @@ function addDepartment() {
       {
         type: "input",
         name: "departmentName",
-        message: "What is the Department Name?",
+        message: "\nWhat is the Department Name?",
         validate: (answer) => {
           if (answer === "") {
             return "Please enter a valid name";
@@ -250,7 +250,7 @@ async function addEmployees() {
       {
         type: "input",
         name: "FirstName",
-        message: "What is the Employees First Name?",
+        message: "\nWhat is the Employees First Name?",
         validate: (answer) => {
           if (answer === "") {
             return "Please enter a valid name";
@@ -261,7 +261,7 @@ async function addEmployees() {
       {
         type: "input",
         name: "Surname",
-        message: "What is the Employees Surname?",
+        message: "\nWhat is the Employees Surname?",
         validate: (answer) => {
           if (answer === "") {
             return "Please enter a valid name";
@@ -272,7 +272,7 @@ async function addEmployees() {
       {
         type: "list",
         name: "roleId",
-        message: "What is the Employees Role?",
+        message: "\nWhat is the Employees Role?",
         choices: rolesArray,
         validate: (answer) => {
           if (answer === "") {
@@ -284,7 +284,7 @@ async function addEmployees() {
       {
         type: "list",
         name: "managerId",
-        message: "Who is the new employees Manager?",
+        message: "\nWho is the new employees Manager?",
         choices: managerArray,
         validate: (answer) => {
           if (answer === "") {
@@ -325,7 +325,7 @@ async function addRoles() {
       {
         type: "input",
         name: "title",
-        message: "What is the new Role Name?",
+        message: "\nWhat is the new Role Name?",
         validate: (answer) => {
           if (answer === "") {
             return "Please enter a valid name";
@@ -336,7 +336,7 @@ async function addRoles() {
       {
         type: "input",
         name: "salary",
-        message: "What is the new Role's base salary?",
+        message: "\nWhat is the new Role's base salary?",
         validate: (answer) => {
           if (answer === NaN) {
             return "Please enter a valid number";
@@ -347,7 +347,7 @@ async function addRoles() {
       {
         type: "list",
         name: "departmentId",
-        message: "What is the new Role's Department id?",
+        message: "\nWhat is the new Role's Department id?",
         choices: deptList,
         validate: (answer) => {
           if (answer === "") {
@@ -376,7 +376,7 @@ const update = async () => {
     {
       type: "list",
       name: "updateStuff",
-      message: "What would you like to update?",
+      message: "\nWhat would you like to update?",
       choices: ["Employee Roles", "Employee Managers"],
     },
   ]);
@@ -406,7 +406,7 @@ async function whichRole() {
       {
         type: "list",
         name: "whichRole",
-        message: "Which role would you like to update?",
+        message: "\nWhich role would you like to update?",
         choices: rolesArray,
       },
     ])
@@ -424,20 +424,20 @@ async function updateWhat(answer) {
       value: d.id,
     };
   });
-  
+
   const roleId = answer.whichRole;
-  console.log("roleId:", roleId);
+  // console.log("roleId:", roleId);
   inquirer
     .prompt([
       {
         type: "list",
         name: "whichParameter",
-        message: "What would you like to update?",
+        message: "\nWhat would you like to update?",
         choices: ["Title", "Salary", "Department ID", "Exit"],
       },
     ])
     .then((result) => {
-      console.log("role id:", roleId);
+      // console.log("role id:", roleId);
       switch (result.whichParameter) {
         case "Title":
           inquirer
@@ -445,13 +445,16 @@ async function updateWhat(answer) {
               {
                 type: "input",
                 name: "newTitle",
-                message: "Please enter a new Title",
+                message: "\nPlease enter a new Title",
               },
             ])
             .then(async (title) => {
-              console.log(title.newTitle, roleId);
+              // console.log(title.newTitle, roleId);
               await query(
                 `update roles set title = '${title.newTitle}' where id = ${roleId}`
+              );
+              console.log(
+                "\n============= Role has been updated ================\n"
               );
               menu();
             });
@@ -463,13 +466,16 @@ async function updateWhat(answer) {
               {
                 type: "input",
                 name: "newSalary",
-                message: "Please enter a new Salary",
+                message: "\nPlease enter a new Salary",
               },
             ])
             .then(async (salary) => {
-              console.log(salary.newSalary, roleId);
+              // console.log(salary.newSalary, roleId);
               await query(
                 `update roles set salary = ${salary.newSalary} where id = ${roleId}`
+              );
+              console.log(
+                "\n============= Role has been updated ================\n"
               );
               menu();
             });
@@ -481,18 +487,24 @@ async function updateWhat(answer) {
               {
                 type: "list",
                 name: "newDeptId",
-                message: "Please choose a new Department",
+                message: "\nPlease choose a new Department",
                 choices: depArray,
               },
             ])
             .then(async (newDep) => {
-              console.log('depArray: ',depArray);
-              console.log(newDep, roleId);
+              // console.log('depArray: ',depArray);
+              // console.log(newDep, roleId);
               await query(
                 `update roles set department_id = ${newDep.newDeptId} where id = ${roleId}`
               );
+              console.log(
+                "\n============= Role has been updated ================\n"
+              );
               menu();
             });
+          break;
+        case "Exit":
+          quit();
           break;
 
         default:
@@ -503,6 +515,51 @@ async function updateWhat(answer) {
 
 // ================== Update Employee Managers ======================
 
+const whichEmployee = async () => {
+  const employees = await query(
+    "select first_name, last_name, id from employees"
+  );
+  const employeesArray = employees.map((employee) => {
+    return {
+      name: employee.first_name + " " + employee.last_name,
+      value: employee.id,
+    };
+  });
+  const managers = await query(
+    `select first_name, last_name, id from employees where role_id='1' OR role_id='2' OR role_id='3' `
+  );
+  const managersArray = managers.map((manager) => {
+    return {
+      name: manager.first_name + " " + manager.last_name,
+      value: manager.id,
+    };
+  });
+  const answer = await inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "whichEmployee",
+        message: "\nWhich employee would you like to update?",
+        choices: employeesArray,
+      },
+      {
+        type: "list",
+        name: "newManager",
+        message: "\nWho is their new Manager",
+        choices: managersArray,
+      },
+    ])
+    .then(async (answer) => {
+      await query(
+        `update employees set manager_id = ${answer.newManager} where id = ${answer.whichEmployee}`
+      );
+      console.log(
+        `=========== Employees Manager has been updated =============`
+      );
+      menu();
+    });
+};
+
 // ==========================================================
 // ================== Delete Question =======================
 const remove = async () => {
@@ -510,7 +567,7 @@ const remove = async () => {
     {
       type: "list",
       name: "deleteStuff",
-      message: "What would you like to delete?",
+      message: "\nWhat would you like to delete?",
       choices: ["Department", "Employees", "Roles"],
     },
   ]);
