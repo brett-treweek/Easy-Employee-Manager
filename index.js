@@ -392,132 +392,56 @@ const update = async () => {
 // ================== Update Employee Roles =========================
 
 async function whichRole() {
-  const roles = await query(`select title, id from roles`);
-
+  const employees = await query(
+    "select first_name, last_name, id from employees"
+  );
+  const employeesArray = employees.map((employee) => {
+    return {
+      name: employee.first_name + " " + employee.last_name,
+      value: employee.id,
+    };
+  });
+  const roles = await query(
+    "select title, id from roles"
+  );
   const rolesArray = roles.map((role) => {
     return {
       name: role.title,
       value: role.id,
     };
   });
-
-  inquirer
+  const answer = await inquirer
     .prompt([
       {
         type: "list",
-        name: "whichRole",
-        message: "\nWhich role would you like to update?",
+        name: "whichEmployee",
+        message: "\nWhich employee would you like to update?",
+        choices: employeesArray,
+      },
+      {
+        type: "list",
+        name: "newRole",
+        message: "\nWhat is their new Role?",
         choices: rolesArray,
       },
     ])
-    .then((answer) => {
-      // console.log(answer.whichRole);
-      updateWhat(answer);
+    .then(async (answer) => {
+      await query(
+        `update employees set role_id = ${answer.newRole} where id = ${answer.whichEmployee}`
+      );
+      console.log(
+        `============= Employees Role has been updated =============`
+      );
+      menu();
     });
 }
-
-async function updateWhat(answer) {
-  const dep = await query("select * from department");
-  const depArray = dep.map((d) => {
-    return {
-      name: d.department_name,
-      value: d.id,
-    };
-  });
-
-  const roleId = answer.whichRole;
-  // console.log("roleId:", roleId);
-  inquirer
-    .prompt([
-      {
-        type: "list",
-        name: "whichParameter",
-        message: "\nWhat would you like to update?",
-        choices: ["Title", "Salary", "Department ID", "Exit"],
-      },
-    ])
-    .then((result) => {
-      // console.log("role id:", roleId);
-      switch (result.whichParameter) {
-        case "Title":
-          inquirer
-            .prompt([
-              {
-                type: "input",
-                name: "newTitle",
-                message: "\nPlease enter a new Title",
-              },
-            ])
-            .then(async (title) => {
-              // console.log(title.newTitle, roleId);
-              await query(
-                `update roles set title = '${title.newTitle}' where id = ${roleId}`
-              );
-              console.log(
-                "\n============= Role has been updated ================\n"
-              );
-              menu();
-            });
-          break;
-
-        case "Salary":
-          inquirer
-            .prompt([
-              {
-                type: "input",
-                name: "newSalary",
-                message: "\nPlease enter a new Salary",
-              },
-            ])
-            .then(async (salary) => {
-              // console.log(salary.newSalary, roleId);
-              await query(
-                `update roles set salary = ${salary.newSalary} where id = ${roleId}`
-              );
-              console.log(
-                "\n============= Role has been updated ================\n"
-              );
-              menu();
-            });
-          break;
-
-        case "Department ID":
-          inquirer
-            .prompt([
-              {
-                type: "list",
-                name: "newDeptId",
-                message: "\nPlease choose a new Department",
-                choices: depArray,
-              },
-            ])
-            .then(async (newDep) => {
-              // console.log('depArray: ',depArray);
-              // console.log(newDep, roleId);
-              await query(
-                `update roles set department_id = ${newDep.newDeptId} where id = ${roleId}`
-              );
-              console.log(
-                "\n============= Role has been updated ================\n"
-              );
-              menu();
-            });
-          break;
-        case "Exit":
-          quit();
-          break;
-
-        default:
-          break;
-      }
-    });
-}
+//   
 
 // ================== Update Employee Managers ======================
 
 const whichEmployee = async () => {
   const employees = await query(
-    "select first_name, last_name, id from employees"
+    "select first_name, last_name, id, role_id from employees"
   );
   const employeesArray = employees.map((employee) => {
     return {
@@ -554,7 +478,7 @@ const whichEmployee = async () => {
         `update employees set manager_id = ${answer.newManager} where id = ${answer.whichEmployee}`
       );
       console.log(
-        `=========== Employees Manager has been updated =============`
+        `============= Employees Manager has been updated =============`
       );
       menu();
     });
@@ -571,7 +495,7 @@ const remove = async () => {
       choices: ["Department", "Employees", "Roles"],
     },
   ]);
-  switch (answer.addStuff) {
+  switch (answer.deleteStuff) {
     case "Department":
       removeDepartment();
       break;
@@ -583,6 +507,48 @@ const remove = async () => {
   }
 };
 // =================== Delete Department =======================
+const removeDepartment = async () => {
+  const departments = await query("select * from department");
+  const departmentArray = departments.map((department) => {
+    return {
+      name: department.department_name,
+      value: department.id,
+    };
+  });
+
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "whichDepartment",
+        message: "\nWhich department would you like to delete?",
+        choices: departmentArray,
+      },
+      {
+        type: "list",
+        name: "sure",
+        message: "\nPlease confirm delete",
+        choices: ["YES", "NO"],
+      },
+    ])
+    .then(async (answer) => {
+      switch (answer.sure) {
+        case "YES":
+          await query(
+            `delete from department where id=${answer.whichDepartment}`
+          );
+          console.log(
+            `============= Department has been Deleted =============`
+          );
+          break;
+
+        default:
+          menu();
+          break;
+      }
+    });
+};
+
 // =================== Delete Employees =======================
 // =================== Delete Roles ===========================
 
